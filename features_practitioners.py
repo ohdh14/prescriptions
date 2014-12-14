@@ -2,9 +2,10 @@ import pandas as pd
 import pickle
 import glob
 import numpy as np
+from collections import ordereddict
 
 directory = '../uk-nhs-gp-prescriptions/nhs-prescriptions-presentation-level-aug13-aug14/'
-features = {}
+features = ordereddict()
 # Get all unique pratitioners
 #practices = []
 #for f in glob.glob(directory + "*PDPI BNFT.???"):
@@ -26,7 +27,7 @@ for f in glob.glob(directory + "*PDPI BNFT.???")[:5]:
     data = data_all[data_all['PRACTICE'] == p]
     if p not in features.keys():
       features[p] = {}
-    features[p][period] = {}
+    features[p][period] = ordereddict()
     
     features[p][period]['N'] = len(data)
     features[p][period]['BNF_NU'] = len(data['BNF CODE'].unique())
