@@ -12,16 +12,16 @@ from datetime import datetime
 months = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12}
 
 
-files = glob('data/uk-nhs-gp-prescriptions/nhs-prescriptions-costs-aug13-aug14/*.xls*')
+files = glob('uk-nhs-gp-prescriptions/nhs-prescriptions-costs-aug13-aug14/*.xls*')
 
 def read_file(fname):
     basename = path.split(fname)[-1].split('.')[0]
     _, month, year = basename.split('_')
     date = datetime(2000 + int(year), months[month], 1)
-    for sh in [1, 2]:
+    for sn in [0, 1]:
       df = pd.read_excel(fname, header=1, sheetname=sn)    
       df['date'] = pd.Series(date, np.arange(len(df)))
-      df['sheet'] = [sh] * len(df)
+      df['sheet'] = [sn] * len(df)
     return df
 
 df = pd.concat([read_file(f) for f in files])
