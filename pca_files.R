@@ -1,13 +1,17 @@
+
+rm(list=ls())
 library(data.table)
 require(stringr)
 
-files = grep(".csv|.CSV", dir("~/Data/prescriptions"),value = TRUE)
+pth.data = "~/data/prescriptions/"
+
+files = grep(".csv|.CSV", dir(pth.data),value = TRUE)
 SUBS = NULL
 BNFT = NULL
 
 myfread = function (fil)  {
   print(fil)
-  dat = fread(paste0("~/data/prescriptions/" , fil))
+  dat = fread(paste0(pth.data , fil))
   period = substr(fil, 2, 7)
   data.table(period = period, dat)[, lapply(.SD,str_trim)]
 }
@@ -25,4 +29,5 @@ setnames(SUBS, names.SUBS)
 postcodes = data.table(postcode = unique(BNFT$postcode))
 #postcodes[, c("postcode_district", "postcode_area", "postcode_sector") := list(f)]
 postcodes[, `:=` (lat = 0, lon = 0)]
-postcodes
+write.csv(postcodes, file=paste0(pth.data, "postcodes.csv"), row.names=FALSE)
+x=read.csv(file=paste0(pth.data,"postcodes.csv"))
