@@ -2,8 +2,8 @@
 rm(list=ls())
 library(data.table)
 require(stringr)
-
 pth.data = "~/data/prescriptions/"
+
 
 files = grep(".csv|.CSV", dir(pth.data),value = TRUE)
 SUBS = NULL
