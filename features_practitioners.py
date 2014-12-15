@@ -3,19 +3,13 @@ import pickle
 import glob
 import numpy as np
 from collections import OrderedDict
+import time
 
 directory = '../uk-nhs-gp-prescriptions/nhs-prescriptions-presentation-level-aug13-aug14/'
 features = OrderedDict()
-# Get all unique pratitioners
-#practices = []
-#for f in glob.glob(directory + "*PDPI BNFT.???"):
-#  print f
-#  data = pd.read_csv(f)
-#  practices.append(data['PRACTICE'].unique())    
-#practices = list(set(practices))
-#print len(practices)
 
 for f in glob.glob(directory + "*PDPI BNFT.???"):
+  t0 = time.time()
   data_all = pd.read_csv(f)
   # Remove trailing spaces from column names...
   data_all.columns = [c.rstrip() for c in data_all.columns]
@@ -23,7 +17,7 @@ for f in glob.glob(directory + "*PDPI BNFT.???"):
   practices = data_all['PRACTICE'].unique()
   print "N practices: ", len(practices)
   
-  for p in practices[:200]:
+  for p in practices:
     data = data_all[data_all['PRACTICE'] == p]
     if p not in features.keys():
       features[p] = {}
@@ -76,21 +70,14 @@ for f in glob.glob(directory + "*PDPI BNFT.???"):
       features[p][period]['qty_std'] = 0
     else:
       features[p][period]['qty_std'] = data['QUANTITY'].std()  
-
-    
+  print "Time for file: ", time.time() - t0
+  
 # Find monthly std for all features
 keys = features[p][period].keys()
 practices = features.keys()
 for i_p, p in enumerate(practices):
-  #if p in features:
   periods = features[p].keys()
-  #print "Periods: ", periods
   for k in keys:     
-    #if k == "N":
-      #print [features[p][pp][k] for pp in periods]
-      #print "Sum: ",  np.sum([features[p][pp][k] for pp in periods])
-      #print "mean: ",  np.mean([features[p][pp][k] for pp in periods])
-      #print "Std: ",  np.std([features[p][pp][k] for pp in periods])
     features[p][k + '_sum'] = np.sum([features[p][pp][k] for pp in periods])
     features[p][k + '_mean'] = np.mean([features[p][pp][k] for pp in periods])
     if np.isnan(np.std([features[p][pp][k] for pp in periods])):
@@ -98,7 +85,6 @@ for i_p, p in enumerate(practices):
     else:
       features[p][k + '_std'] = np.std([features[p][pp][k] for pp in periods])  
 
-    #features[p][k + '_std'] = np.std([features[p][pp][k] for pp in periods]) or 0
     features[p]['N_periods'] = len(periods)
   for pp in periods:
     del(features[p][pp])
@@ -106,13 +92,9 @@ for i_p, p in enumerate(practices):
   # Add practitioner to dataframe
   if p == practices[0]:
     features_np = features[p].values()
-    #features_all = pd.DataFrame(np.array([features[p].values()]), columns = features[p].keys())
   else:
     features_np = np.vstack((features_np, features[p].values()))
-    
-    #features_all.loc[i_p] = features[p].values()
-    #features_all.loc[i_p] = features[p].values()
 features_all = pd.DataFrame(features_np, columns = features[p].keys())      
-features_all.to_csv('features_practice.csv', index=False) 
+features_all.to_csv('features_practice_all.csv', index=False) 
         
 	
