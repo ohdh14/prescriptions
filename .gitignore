@@ -58,3 +58,7 @@ target/
 
 #Mac stuff
 .DS_Store
+
+# R stuff
+*.html
+
