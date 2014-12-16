@@ -7,9 +7,9 @@ plot.top30.dotplot = function() {
 
 
 plot.top30.box = function() {
-  ggplot(dat.section[section %in% section.top30], aes(x = reorder(section), y = net_cost/1000)) + 
-    geom_boxplot() + ylab("Net Cost (£m)") + xlab("") + expand_limits(x=0)  +
-    theme_bw() + ggtitle("Top 30 Sections: Monthly Cost istributions") + coord_flip()  
+  ggplot(dat.section[section %in% section.top30], aes(x = reorder(section, net_cost), y = net_cost/1000)) + 
+    geom_boxplot() + ylab("\nNet Cost (£m)") + xlab("") + expand_limits(x=0)  +
+    theme_bw() + ggtitle("Top 30 Sections: Monthly Cost Distributions\n") + coord_flip()  
 }
 
 

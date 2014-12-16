@@ -1,5 +1,8 @@
-
-
+#' ---
+#' title: "NHS prescription Analysis Aug 2013-2014"
+#' author: "Matt Weller"
+#' date: "Dec 14th, 2014"
+#' ---
 # script for analysing the aggregated prescriptions data
 # dimensions: 
 #  - drug (section, chemical, drug, ADD generic/branded ADD prep class, std qty unit)
@@ -13,14 +16,18 @@
 # calculated measures:
 #  - 
 
+
+# set up the environment: clear, libraries, source functions
 rm(list=ls())
-library(data.table) ; require(stringr) ; library(ggplot2) ; library(bit64)
+library(data.table) ; require(stringr) ; library(ggplot2) ; library(bit64) ; library(knitr)
 source("pca_analysis_functions.R")
+opts_chunk$set(eval = FALSE, echo = FALSE)
+
 # paramters
 sections.filter = c("Antidepressant Drugs", "Antihist, Hyposensit & Allergic Emergen", "Cough Preparations")
+pth.data = "~/data/prescriptions/"
 
 # load the data and rename/columns as required
-pth.data = "~/data/prescriptions/"
 dat = readRDS(paste0(pth.data, "pca_all.rds"))
 setnames(dat, names(dat)[1:4], c("code","section", "chemical", "drug"))
 
@@ -37,8 +44,7 @@ drugs = unique(dat[,list(section, chemical, drug)])
 time.periods = c(201308:201312, 201401:201408)
 periods = data.table(period_date=unique(dat$period_date),period = 1:13,key = "period_date")
 
-
-# create data by section
+# create data by SECTION
 dat.section = dat[, list(net_cost = sum(net_cost)/1000), by = c("section", "period_date")]
 dat.summary = dat.section[j = list(net_cost_total = sum(net_cost),
                                    cost_max = max(net_cost),
@@ -49,14 +55,14 @@ dat.summary = dat.section[j = list(net_cost_total = sum(net_cost),
                                    cost_cov = sd(net_cost)/mean(net_cost)), 
                           by = section][order(-net_cost_total)]
 dat.summary[, cost_rank := 1:.N]
-print(dat.summary)
 section.top30 = dat.summary$section[1:30]
 
+# now print the outputs
+print(dat.summary)
 plot.top30.dotplot()
 plot.top30.box()
 print(plot1(data.monthly()))
 print(plot.multi.facet(data.monthly(sections.filter)))
 print(plot.multi.colour(data.monthly(sections.filter)))
-plot.drug()
+plot.drug(drug.name = "Trifluoperazine_Tab 5mg")
 filter.drug()
-
