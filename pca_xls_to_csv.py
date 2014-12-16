@@ -13,7 +13,7 @@ months = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 
 
 
 files = glob('uk-nhs-gp-prescriptions/nhs-prescriptions-costs-aug13-aug14/*.xls*')
-files = glob('/Users/wellermatt/data/prescriptions/*.xls*')
+files = glob('/Users/wellermatt/data/prescriptions/pca_files/*.xls*')
 
 def read_file(fname):
     basename = path.split(fname)[-1].split('.')[0]
@@ -32,4 +32,4 @@ def read_file(fname):
 read_file(files[1])
 df = pd.concat([read_file(f) for f in files])
 
-df.to_csv('aggregated_pca.csv', index=False)
+df.to_csv('/Users/wellermatt/data/prescriptions/pca_files/aggregated_pca_11_14.csv', index=False)
