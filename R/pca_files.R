@@ -10,14 +10,14 @@ myfread = function(fil) {
 }
 
 
-dat = myfread(fil = "pca_files/aggregated_pca_11_14.csv")
+dat = myfread(fil = "pca_files/aggregated_pca_09_14.csv")
 dat$'Net Ingredient Cost of which Class 2' = NULL
 setcolorder(dat,c(2,3,1,4,9,12,5,6,10,11,7,8,13,14))
 new.names = c("code", "section", "chemical", "drug", "prep_class", "std_qty_unit", 
               "items_dispensed", "items_class2", "quantity", "quantity_class2", 
-              "net_cost", "net_cost_class2", "period_date", "worksheet"))
+              "net_cost", "net_cost_class2", "period_date", "worksheet")
 setnames(dat, new.names)
-saveRDS(dat, "~/data/prescriptions/pca_files/pca_all_2011_2014.rds")
+saveRDS(dat, "~/data/prescriptions/pca_files/pca_all_2009_2014.rds")
 
 
 

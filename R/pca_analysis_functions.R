@@ -7,9 +7,9 @@ load.pca.data = function(opt.all = FALSE) {
     setnames(dat, names(dat)[1:4], c("code","section", "chemical", "drug"))
     new.names = names(dat)
   } else {
-    dat = readRDS(paste0(pth.data, "pca_files/pca_all_2011_2014.rds"))[,period_date := as.Date(period_date)]
+    dat = readRDS(paste0(pth.data, "pca_files/pca_all_2009_2014.rds"))[,period_date := as.Date(period_date)]
     sapply(dat,class)
-    dat = dat[period_date >= '2011-01-01 00:00:00']
+    #dat = dat[period_date >= '2011-01-01 00:00:00']
   }
   
   # add all of the calculated fields
@@ -22,12 +22,12 @@ load.pca.data = function(opt.all = FALSE) {
 
 agg.pca = function(dat) {
   
-  
   dat.summary = dat.section[j = list(net_cost_total = sum(net_cost),
                                      cost_max = max(net_cost),
                                      cost_min = min(net_cost),
                                      cost_range = max(net_cost) - min(net_cost),
                                      cost_mean = mean(net_cost),
+                                     cost_median = median(net_cost),
                                      cost_sd = sd(net_cost),
                                      cost_cov = sd(net_cost)/mean(net_cost)), 
                             by = section][order(-net_cost_total)]

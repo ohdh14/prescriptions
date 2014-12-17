@@ -32,4 +32,4 @@ def read_file(fname):
 read_file(files[1])
 df = pd.concat([read_file(f) for f in files])
 
-df.to_csv('/Users/wellermatt/data/prescriptions/pca_files/aggregated_pca_11_14.csv', index=False)
+df.to_csv('/Users/wellermatt/data/prescriptions/pca_files/aggregated_pca_09_14.csv', index=False)
