@@ -20,19 +20,35 @@ load.pca.data = function(opt.all = FALSE) {
   dat
 }
 
-agg.pca = function(dat) {
+load.pca.section.month = function() {
+  fil = paste0(pth.data, "pca_files/pca_section_month_2009_2014.rds")
+  readRDS(fil)
+}
+
+agg.pca.section.month = function(dat, opt.save = FALSE) {
+  dat.section = dat[j = list(net_cost = sum(net_cost)/1000), 
+                    by = c("section", "period_date")]
+  if (opt.save == TRUE) {
+    fil = paste0(pth.data, "pca_files/pca_section_month_2009_2014.rds")
+  }
+  dat.section
+}
+agg.pca.section = function(dat, opt.save = FALSE) {
   
-  dat.summary = dat.section[j = list(net_cost_total = sum(net_cost),
-                                     cost_max = max(net_cost),
-                                     cost_min = min(net_cost),
-                                     cost_range = max(net_cost) - min(net_cost),
-                                     cost_mean = mean(net_cost),
-                                     cost_median = median(net_cost),
-                                     cost_sd = sd(net_cost),
-                                     cost_cov = sd(net_cost)/mean(net_cost)), 
-                            by = section][order(-net_cost_total)]
-  dat.summary[, cost_rank := 1:.N]
-  dat.summary
+  dat.summary.section = 
+    dat.section[j = list(net_cost_total = sum(net_cost),
+                         cost_max = max(net_cost),
+                         cost_min = min(net_cost),
+                         cost_range = max(net_cost) - min(net_cost),
+                         cost_mean = mean(net_cost),
+                         cost_median = median(net_cost),
+                         cost_sd = sd(net_cost),
+                         cost_cov = sd(net_cost)/mean(net_cost)), 
+                by = section][order(-net_cost_total)]
+  dat.summary.section[, cost_rank := 1:.N]
+  
+  # optionally save the summarised data
+  dat.summary.section
 }
 
 

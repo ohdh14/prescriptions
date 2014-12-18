@@ -15,16 +15,12 @@ drugs = unique(dat[,list(section, chemical, drug)])
 periods = data.table(period_date=unique(dat$period_date),period = 0,key = "period_date")[,period:=1:.N]
 
 # create data by SECTION
-dat.section = dat[, list(net_cost = sum(net_cost)/1000), 
-                  by = c("section", "period_date")]
-
+dat.section = agg.pca.section.month(dat)
 # summarise by sections
-dat.summary = agg.pca(dat)
+dat.summary = agg.pca.section(dat)
 
 
-
-
-# Define server logic required to draw a histogram
+# Define server logic required to draw time series plot for a single item
 shinyServer(function(input, output) {
   
   # Expression that generates a histogram. The expression is
@@ -33,8 +29,12 @@ shinyServer(function(input, output) {
   #  1) It is "reactive" and therefore should re-execute automatically
   #     when inputs change
   #  2) Its output type is a plot
+  output$choose_section <- renderUI({
+    selectInput("section", "Section", as.list(sections))
+  })
   
   output$sectionPlot <- renderPlot({
-    plot.multi.facet(plot.data = data.monthly(sections.filter))
+    #plot.multi.facet(plot.data = data.monthly(sections.filter))
+    plot1(data.monthly(section = input$section))
   })
 })

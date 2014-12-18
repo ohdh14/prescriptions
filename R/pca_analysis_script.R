@@ -25,24 +25,29 @@ opts_chunk$set(eval = FALSE, echo = FALSE)
 # paramters
 sections.filter = c("Antidepressant Drugs","Drugs Used In Diabetes", "Antihist, Hyposensit & Allergic Emergen", "Cough Preparations")
 pth.data = "~/data/prescriptions/"
-dat = load.pca.data(opt.all = TRUE)
+opt.agg = FALSE ; opt.save = FALSE
 
+# get the data/aggregate the data/save the data/
+if (opt.agg == FALSE) {
+  dat = load.pca.data(opt.all = TRUE)
+  # create data by SECTION
+  dat.section = agg.pca.section.month(dat,opt.save = opt.save)
+  # summarise by
+  dat.summary = agg.pca.section(dat)
+} else {
+  dat = load.pca.data(opt.all = TRUE)
+  dat.section = load.pca.section.month()
+  dat.summary = agg.pca.section(dat)
+}
 
+dat.summary
 # unique codes, sections, drugs (related reference data)
 codes = length(unique(dat$code))
-sections = unique(dat$section)
 drugs = unique(dat[,list(section, chemical, drug)])
-periods = data.table(period_date=unique(dat$period_date),period = 0,key = "period_date")[,period:=1:.N]
-
-# create data by SECTION
-dat.section = dat[, list(net_cost = sum(net_cost)/1000), 
-                  by = c("section", "period_date")]
-
-# summarise by
-dat.summary = agg.pca(dat)
+sections = unique(dat.section$section)
+periods = data.table(period_date=unique(dat.section$period_date),period = 0,key = "period_date")[,period:=1:.N]
 
 section.top30 = dat.summary$section[1:30]
-
 
 # now print the outputs
 print(head(dat.summary,3))
@@ -50,6 +55,8 @@ plot.top30.dotplot()
 plot.top30.box()
 print(plot1(data.monthly()))
 print(plot.multi.facet(data.monthly(sections.filter)))
+print(plot.multi.facet(data.monthly(section.top30[1:16])))
 print(plot.multi.colour(data.monthly(sections.filter)))
+print(plot.multi.colour(data.monthly(section.top30[1:16])))
 plot.drug(drug.name = "Trifluoperazine_Tab 5mg")
 filter.drug()
