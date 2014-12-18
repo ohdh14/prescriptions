@@ -5,9 +5,9 @@ from boto.s3.connection import S3Connection
 
 conn = S3Connection('AKIAJ7BKD4MMP72WUOZQ', 'MQhKEi3Kmq+tKGz3++kZIF4kOubUR5A/P4Ki7oMr')
 bucket = conn.get_bucket('ohdh14')
+directory = "uk-nhs-gp-prescriptions"
 
 #copy bucket content
-directory = "uk-nhs-gp-prescriptions"
 for key in bucket.list():
   if key.name[:23] == directory:
     if key.size == 0:
@@ -17,6 +17,7 @@ for key in bucket.list():
       k = bucket.get_key(key.name)
       print key.name
       k.get_contents_to_filename(key.name)
+
 
 #list bucket content
 #for key in bucket.list():

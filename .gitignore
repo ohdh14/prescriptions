@@ -61,4 +61,4 @@ target/
 
 # R stuff
 *.html
-
+.Rhistory
