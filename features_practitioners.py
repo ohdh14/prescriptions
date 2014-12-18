@@ -1,101 +1,139 @@
+""" Create the statistical features for all the practition
+    This use all the files, this is a  """
+
 import pandas as pd
 import pickle
 import glob
 import numpy as np
 from collections import OrderedDict
 import time
+import os.path
+import pickle
+import multiprocessing
 
 directory = '../uk-nhs-gp-prescriptions/nhs-prescriptions-presentation-level-aug13-aug14/'
-features = OrderedDict()
 
-for f in glob.glob(directory + "*PDPI BNFT.???"):
+def make_features(f):
+  """ Makes the features for a file 
+      Saves the output in a pickle file, same as f but with a .pkl extension 
+  """
   t0 = time.time()
   data_all = pd.read_csv(f)
-  # Remove trailing spaces from column names...
-  data_all.columns = [c.rstrip() for c in data_all.columns]
+  data_all.columns = [c.rstrip() for c in data_all.columns] # Remove trailing spaces from column names...
+  features = OrderedDict()
+  
   period = data_all['PERIOD'].values[0]
+  features[period] = OrderedDict()
   practices = data_all['PRACTICE'].unique()
   print "N practices: ", len(practices)
   
   for p in practices:
+    t00 = time.time()
     data = data_all[data_all['PRACTICE'] == p]
-    if p not in features.keys():
-      features[p] = {}
-    features[p][period] = OrderedDict()
+    print "Time to extract practice data: ", time.time() - t00
     
-    features[p][period]['N'] = len(data)
-    features[p][period]['BNF_NU'] = len(data['BNF CODE'].unique())
-    features[p][period]['BNF_NU_N'] = features[p][period]['BNF_NU'] / features[p][period]['N']
+    if p not in features[period].keys():
+      features[period][p] = OrderedDict()
+    
+    features[period][p]['N'] = len(data)
+    features[period][p]['BNF_NU'] = len(data['BNF CODE'].unique())
+    features[period][p]['BNF_NU_N'] = features[period][p]['BNF_NU'] / features[period][p]['N']
     bnfs = list(data['BNF CODE'].values)
     c_max = 0
     for b in data['BNF CODE'].unique():
       c = bnfs.count(b)
       if c > c_max:
         c_max = c
-    features[p][period]['BNF_MF'] = c_max
-    features[p][period]['BNF_MF_N'] = features[p][period]['BNF_MF'] / features[p][period]['N']
-    features[p][period]['items_sum'] = data['ITEMS'].sum()
-    features[p][period]['items_mean'] = data['ITEMS'].mean()
+    features[period][p]['BNF_MF'] = c_max
+    features[period][p]['BNF_MF_N'] = features[period][p]['BNF_MF'] / features[period][p]['N']
+    features[period][p]['items_sum'] = data['ITEMS'].sum()
+    features[period][p]['items_mean'] = data['ITEMS'].mean()
 
     if np.isnan(data['ITEMS'].std()):
-      features[p][period]['items_std'] = 0
+      features[period][p]['items_std'] = 0
     else:
-      features[p][period]['items_std'] = data['ITEMS'].std()
+      features[period][p]['items_std'] = data['ITEMS'].std()
     
-    features[p][period]['nic_sum'] = data['NIC'].sum()
-    features[p][period]['nic_mean'] = data['NIC'].mean()
+    features[period][p]['nic_sum'] = data['NIC'].sum()
+    features[period][p]['nic_mean'] = data['NIC'].mean()
     if np.isnan(data['NIC'].std()):
-      features[p][period]['nic_std'] = 0
+      features[period][p]['nic_std'] = 0
     else:
-      features[p][period]['nic_std'] = data['NIC'].std()  
+      features[period][p]['nic_std'] = data['NIC'].std()  
 
-    features[p][period]['act_sum'] = data['ACT COST'].sum()
-    features[p][period]['act_mean'] = data['ACT COST'].mean()
+    features[period][p]['act_sum'] = data['ACT COST'].sum()
+    features[period][p]['act_mean'] = data['ACT COST'].mean()
     if np.isnan(data['ACT COST'].std()):
-      features[p][period]['act_std'] = 0
+      features[period][p]['act_std'] = 0
     else:
-      features[p][period]['act_std'] = data['ACT COST'].std()  
+      features[period][p]['act_std'] = data['ACT COST'].std()  
     
     act_nic = data['ACT COST'].values - data['NIC'].values
-    features[p][period]['act_nic_sum'] = act_nic.sum()
-    features[p][period]['act_nic_mean'] = act_nic.mean()
+    features[period][p]['act_nic_sum'] = act_nic.sum()
+    features[period][p]['act_nic_mean'] = act_nic.mean()
     if np.isnan(act_nic.std()):
-      features[p][period]['act_nic_std'] = 0
+      features[period][p]['act_nic_std'] = 0
     else:
-      features[p][period]['act_nic_std'] = act_nic.std()  
+      features[period][p]['act_nic_std'] = act_nic.std()  
 
     
-    features[p][period]['qty_sum'] = data['QUANTITY'].sum()
-    features[p][period]['qty_mean'] = data['QUANTITY'].mean()
+    features[period][p]['qty_sum'] = data['QUANTITY'].sum()
+    features[period][p]['qty_mean'] = data['QUANTITY'].mean()
     if np.isnan(data['QUANTITY'].std()):
-      features[p][period]['qty_std'] = 0
+      features[period][p]['qty_std'] = 0
     else:
-      features[p][period]['qty_std'] = data['QUANTITY'].std()  
-  print "Time for file: ", time.time() - t0
-  
-# Find monthly std for all features
-keys = features[p][period].keys()
-practices = features.keys()
-for i_p, p in enumerate(practices):
-  periods = features[p].keys()
-  for k in keys:     
-    features[p][k + '_sum'] = np.sum([features[p][pp][k] for pp in periods])
-    features[p][k + '_mean'] = np.mean([features[p][pp][k] for pp in periods])
-    if np.isnan(np.std([features[p][pp][k] for pp in periods])):
-      features[p][k + '_std'] = 0
-    else:
-      features[p][k + '_std'] = np.std([features[p][pp][k] for pp in periods])  
-    features[p]['N_periods'] = len(periods)
-  for pp in periods:
-    del(features[p][pp])
+      features[period][p]['qty_std'] = data['QUANTITY'].std() 
+  file_out = open(os.path.splitext(f)[0] + ".pkl", 'w')
+  pickle.dump(features, file_out)
+  print "Time for file ", time.time() - t0, f
 
-  # Add practitioner to dataframe
-  if p == practices[0]:
-    features_np = features[p].values()
-  else:
-    features_np = np.vstack((features_np, features[p].values()))
-features_all = pd.DataFrame(features_np, columns = features[p].keys())      
-features_all.to_csv('features_practice_all.csv', index=False) 
+def combine_features(file_list):
+  """ Combine montly features """
+  print file_list  
+  for i, f in enumerate(file_list):
+    f = open(os.path.splitext(f)[0] + ".pkl", 'r')
+    if i == 0:
+      features_raw = pickle.load(f)
+    else:
+      temp = pickle.load(f)
+      period = temp.keys()[0]
+      features_raw[period] = temp[period]    
+  # Find monthly std for all features
+  keys = features_raw[period][features_raw[period].keys()[0]].keys()
+  practices = features_raw[period].keys()
+  features = OrderedDict()
+  for i_p, p in enumerate(practices):
+    features[p] = OrderedDict()
+    periods = features_raw[period][p].keys()
+    for k in keys:
+      features[p][k + '_sum'] = np.sum([features_raw[p][pp][k] for pp in periods])
+      features[p][k + '_mean'] = np.mean([features_raw[p][pp][k] for pp in periods])
+      if np.isnan(np.std([features_raw[p][pp][k] for pp in periods])):
+        features[p][k + '_std'] = 0
+      else:
+        features[p][k + '_std'] = np.std([features_raw[p][pp][k] for pp in periods])  
+      features[p]['N_periods'] = len(periods)
+
+    # Add practitioner to dataframe
+    if p == practices[0]:
+      features_np = features[p].values()
+    else:
+      features_np = np.vstack((features_np, features[p].values()))
+  return features_np, features[p].keys()    
+      
+
+if __name__ == '__main__':
+  file_list = glob.glob(directory + "*PDPI BNFT.???")  
+  jobs = []
+  for f in file_list:
+    p = multiprocessing.Process(target=make_features, args=(f))
+    jobs.append(p)
+    p.start()
+  for j in jobs:
+    j.join()  
+  features_np, labels = combine_features(file_list)
+  features_all = pd.DataFrame(features_np, columns = labels)      
+  features_all.to_csv('features_practice_all.csv', index=False) 
 
         
 	
